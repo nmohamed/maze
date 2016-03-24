@@ -19,7 +19,6 @@ var index = require('./routes/index');
 app.get('/', index.home);
 app.get('/start', index.GETstart);
 app.get('/step', index.GETstep);
-app.post('/nextstep', index.POSTnextstep);
 app.get('/solve', index.GETsolve);
 app.get('/check', index.GETcheck);
 

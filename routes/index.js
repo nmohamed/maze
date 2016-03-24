@@ -10,26 +10,29 @@ routes.GETstart = function(req, res){
 	letterPath = '';
 	console.log('Letter path reset');
 	var id = req.query.s;
-	var maze = getMaze(id, null); //TODO: randomly get maze
-	if (maze === null){
-		res.render('error', {message: 'Invalid maze config.'});
-	} else {
-		res.redirect('/step?s=' + maze.id + '&x=0&y=0');
+	if(!checkID(id)){
+		id = getRandomID();
 	}
+	var maze = getMaze(id);
+	res.redirect('/step?s=' + maze.id + '&x=0&y=0');
 }
 
 routes.GETstep = function(req, res){
 	var id = req.query.s;
 	var x = parseInt(req.query.x);
 	var y = parseInt(req.query.y); // defaults to 0, 0
-	if (x < 0 || y < 0 || x == undefined || y == undefined ){ // negative input defaults to 0, 0
+
+	var maze = getMaze(id);
+
+	if (x < 0 || y < 0 || x == undefined || y == undefined || 
+		x > maze.maze.length-1 || y > maze.maze.length-1 ||
+		maze.maze[y][x] != 0){ // bad input defaults to 0, 0
 		x = 0; y = 0; letterPath = '';
 	}
 	var letter = getEncode(x, y);
 	letterPath = letterPath.concat(letter);
 	console.log('Letter path:', letterPath);
 
-	var maze = getMaze(id, null);
 	var adjacent = getAdjacent(x, y, maze.maze);
 	maze.maze[y][x] = 8;
 
@@ -40,18 +43,8 @@ routes.GETstep = function(req, res){
 		path: letterPath,
 		adjacent: adjacent,
 		letter: letter,
-		end: checkEnd(x, y, maze.maze)
+		end: checkEnd(x, y, maze.maze.length)
 	});
-}
-
-routes.POSTnextstep = function(req, res){
-	var id = req.body.id;
-	var adjacent = req.body.adjacent;
-	var letter = req.body.letter;
-	var end = req.body.end;
-	var x = 0; y = 1;
-	var newURL = '/step?s=' + id + '&x=' + x + '&y=' + y + '';
-	res.redirect(newURL);
 }
 
 routes.GETsolve = function(req, res){
@@ -66,10 +59,11 @@ routes.GETcheck = function(req, res){
 	var id = req.query.s;
 	var guess = req.query.guess;
 
-	var maze = getMaze(id, true);
-	if (maze == true){
+	if (!checkID(id)){
 		res.render('check', {invalidID: true});
 	}
+
+	var maze = getMaze(id);
 
 	res.render('check', {
 		maze: maze, 
@@ -122,35 +116,27 @@ var checkStep = function(x, y, maze){
 }
 
 
-var getMaze = function(id, validity){ // 'validity' is either null or true and is used for GETcheck
-	// Beginning is always (0, 0), end is always (maze.length-1, maze.length-1) --> (4, 4)
+var getMaze = function(id){ // 'validity' is either null or true and is used for GETcheck
+	// Beginning is always (0, 0), end is always (maze.length-1, maze.length-1)
 	// Mazes are no bigger than 16 * 16
 
 	// TODO: generate random maze 
 	// TODO: convert binary id to hex '55F79E3C'
-
-	var defaultMaze = [[0, 1, 1, 1, 1], 
-						   [0, 1, 1, 1, 1], 
-					       [0, 0, 1, 1, 1], 
-					       [1, 0, 0, 0, 1], 
-					       [1, 1, 1, 0, 0]];
-	if (id == undefined || id == null){ //if maze id is invalid
-		return validity || {id: '550111101111001111000111100', maze: defaultMaze};
+	var validID = checkID(id);
+	if (!validID){
+		id = '550111101111001111000111100';
 	}
 
 	var length = id.length - 2;
 	var height = parseInt(id[0], 16); // to int
 	var width = parseInt(id[1], 16);
-	if (height > 16 || width > 16 || length/height !== width){ //if maze is not correct configuration
-		return validity || {id: '550111101111001111000111100', maze: defaultMaze};
-	}
 
 	var maze = [];
 	var count = 2;
 	for (i = 0; i < height; i++){
 		var row = [];
 		for (j = 0; j < width; j++){
-			row[j] = id[count];
+			row[j] = parseInt(id[count]);
 	    	count++;
 		}
 		maze[i] = row;
@@ -158,27 +144,30 @@ var getMaze = function(id, validity){ // 'validity' is either null or true and i
 	return {id: id, maze: maze};
 }
 
-// var getMazeID = function(path){
-// 	// ID in format of height + width + maze, e.g., 
-// 	// Height and width are in hex and are no larger than 16
-// 	if (path.length.toString(16) > 16 || path[0].length.toString(16) > 16){
-// 		console.log("Error: maze too large");
-// 		return false;
-// 	}
-// 	var id = path.length.toString(16) + path[0].length.toString(16);
-// 	for (i = 0; i < path.length; i++){
-// 		for (j = 0; j < path.length; j++){
-// 			id = id.concat(path[i][j].toString());
-// 		}
-// 	}
-// 	//TODO: convert binary id to hex '55F79E3C'
-// 	return id;
-// }
+
+var examples = ['550111101111001111000111100', '770100001010110101011010101101010000100011011100000', '66011000011010001010100010111000111110'];
+
+var getRandomID = function(){
+	return examples[Math.floor(Math.random() * examples.length)];
+}
+
+var checkID = function(id){
+	if (id == undefined || id == null){ //if maze id is invalid
+		return false;
+	}
+	var length = id.length - 2;
+	var height = parseInt(id[0], 16); // to int
+	var width = parseInt(id[1], 16);
+	if (id[2] != '0' || id[id.length-1] != '0' || //if maze doesn't have valid start and end
+		height > 16 || width > 16 || length/height !== width){ //if maze is not correct configuration
+		return false;
+	}
+	return true;
+}
 
 var findPath = function(maze){
 	var PF = require('pathfinding');
 	var grid = new PF.Grid(maze);
-	var gridBackup = grid.clone();
 	var finder = new PF.AStarFinder();
 	var path = finder.findPath(0, 0, maze.length-1, maze.length-1, grid); 
 	var encode = '';

@@ -4,6 +4,10 @@
 		{{this}} <br>
 	{{/each}}
 </p>
-Solution is: {{solution.path}} --> {{solution.encode}}
+Solution is: 
+{{#each solution.path}}
+	[{{this}}] -> 
+{{/each}}
+{{solution.encode}}
 <br></br>
 <a href="/check?s={{maze.id}}&guess={{solution.encode}}">/check?s={{maze.id}}&guess={{solution.encode}}</a><br></br>
