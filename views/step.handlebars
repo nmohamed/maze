@@ -1,0 +1,24 @@
+<a href="/">Home</a>
+<p>
+	{{#each maze.maze}}
+		{{this}} <br>
+	{{/each}}
+</p>
+
+Current step:<br>
+({{x}}, {{y}}) -> {{letter}}<br>
+
+{{#if end}}
+	You've reached the end! <br>
+	Check:<br>
+	<a href="/check?s={{maze.id}}&guess={{path}}">/check?s={{maze.id}}&guess={{path}}</a><br>
+{{else}}
+	Possible steps:<br>
+	{{#each adjacent}}
+		<a href="/step?s={{../maze.id}}&x={{this.x}}&y={{this.y}}">
+			/step?s={{../maze.id}}&x={{this.x}}&y={{this.y}}</a><br>
+	{{/each}}
+{{/if}}
+
+Get solution:<br>
+<a href="/solve?s={{maze.id}}">/solve?s={{maze.id}}</a><br>

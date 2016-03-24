@@ -1,0 +1,13 @@
+<a href="/">Home</a>
+
+{{#if invalidID}}
+	Invalid ID, maze not possible.
+{{else}}
+	<p>
+		{{#each maze.maze}}
+			{{this}} <br>
+		{{/each}}
+	</p>
+
+	Solution {{solution}} for maze {{maze.id}} is <b>{{end}}</b>
+{{/if}}

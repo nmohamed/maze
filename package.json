@@ -1,0 +1,21 @@
+{
+  "name": "maze",
+  "version": "1.0.0",
+  "description": "Flipboard Challenge",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "body": "^5.1.0",
+    "body-parser": "^1.14.2",
+    "cookie-parser": "^1.4.1",
+    "express": "^4.13.4",
+    "express-handlebars": "^3.0.0",
+    "mongoose": "^4.3.7",
+    "morgan": "^1.6.1",
+    "pathfinding": "^0.4.17"
+  },
+  "author": "",
+  "license": "ISC"
+}
